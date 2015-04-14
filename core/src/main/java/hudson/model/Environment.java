@@ -97,8 +97,12 @@ public abstract class Environment {
 		return true;
 	}
 
-    public boolean skipProjectBuilders()
-            throws IOException, InterruptedException {
+	/**
+	 * Allows downstream build steps in Build Environment to skip the current project builder
+	 * <p>
+	 * @return true if build can skip.
+	 */
+    public boolean skipProjectBuilders(){
         return false;
     }
 
