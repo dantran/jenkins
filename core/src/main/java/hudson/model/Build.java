@@ -1,18 +1,18 @@
 /*
  * The MIT License
- *
+ * 
  * Copyright (c) 2004-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Martin Eigenbrodt
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -78,7 +78,7 @@ import javax.annotation.Nonnull;
  *
  * <p>
  * And beyond that, the build is considered complete, and from then on {@link Build} object is there to
- * keep the record of what happened in this build.
+ * keep the record of what happened in this build. 
  *
  * @author Kohsuke Kawaguchi
  */
@@ -145,27 +145,28 @@ public abstract class Build <P extends Project<P,B>,B extends Build<P,B>>
             Result r = null;
             try {
                 List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(project.getBuildWrappers().values());
-
+                
                 ParametersAction parameters = getAction(ParametersAction.class);
                 if (parameters != null)
                     parameters.createBuildWrappers(Build.this,wrappers);
 
-                boolean skipProjectBuilders = false;
+                boolean skipProjectBuilders=false;
                 for( BuildWrapper w : wrappers ) {
                     Environment e = w.setUp((AbstractBuild<?,?>)Build.this, launcher, listener);
                     if(e==null)
                         return (r = FAILURE);
-
-                    if (e.skipProjectBuilders()) {
-                        //downstream build step wants to skip the configured project builder
-                        skipProjectBuilders = true;
-                    }
                     buildEnvironments.add(e);
+                    if((e.skipProjectBuilders())) {
+                        skipProjectBuilders=true;
+                    }                    
+                }
+                
+                if(!skipProjectBuilders) {
+                    if(!build(listener,project.getBuilders())) {
+                        r = FAILURE;
+                    }
                 }
 
-                if (!skipProjectBuilders)
-                    if(!build(listener,project.getBuilders()))
-                        r = FAILURE;
             } catch (InterruptedException e) {
                 r = Executor.currentExecutor().abortResult();
                 // not calling Executor.recordCauseOfInterruption here. We do that where this exception is consumed.
@@ -177,7 +178,7 @@ public abstract class Build <P extends Project<P,B>,B extends Build<P,B>>
                 for( int i=buildEnvironments.size()-1; i>=0; i-- ) {
                     if (!buildEnvironments.get(i).tearDown(Build.this,listener)) {
                         failed=true;
-                    }
+                    }                    
                 }
                 // WARNING The return in the finally clause will trump any return before
                 if (failed) return FAILURE;
@@ -211,7 +212,7 @@ public abstract class Build <P extends Project<P,B>,B extends Build<P,B>>
                     LOGGER.log(Level.FINE, "{0} : {1} failed", new Object[] {Build.this, bs});
                     return false;
                 }
-
+                
                 Executor executor = getExecutor();
                 if (executor != null && executor.isInterrupted()) {
                     // someone asked build interruption, let stop the build before trying to run another build step
